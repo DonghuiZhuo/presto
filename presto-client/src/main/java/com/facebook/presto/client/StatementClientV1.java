@@ -19,6 +19,7 @@ import com.facebook.presto.common.type.TimeZoneKey;
 import com.facebook.presto.spi.security.SelectedRole;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -135,7 +136,35 @@ class StatementClientV1
 
     private Request buildQueryRequest(ClientSession session, String query)
     {
-        HttpUrl url = HttpUrl.get(session.getServer());
+        URI server = null;
+        String kwestToken = "";
+        String user = session.getUser();
+        String group = "";
+        String catalog = session.getCatalog();
+        String schema = session.getSchema();
+
+        if (!Strings.isNullOrEmpty(session.getKwestConfig())) {
+            KwestConfig conf = KwestConfig.load(session.getKwestConfig());
+            String endpoint = conf.getKwestServiceEndpoint();
+            user = conf.getUser();
+            group = conf.getGroup();
+            catalog = conf.getKwestCatalog();
+            schema = conf.getKwestSchema();
+            String loginUrl = endpoint + "v1/login";
+
+            KwestTokenUtil util = new KwestTokenUtil(session.getKeystorePath(), session.getKeystorePass());
+            try {
+                kwestToken = util.getToken(loginUrl, user, group);
+            }
+            catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+
+            server = URI.create(endpoint);
+        }
+
+//        HttpUrl url = HttpUrl.get(session.getServer());
+        HttpUrl url = HttpUrl.get(server);
         if (url == null) {
             throw new ClientException("Invalid server URL: " + session.getServer());
         }
@@ -193,6 +222,12 @@ class StatementClientV1
         }
 
         builder.addHeader(PRESTO_TRANSACTION_ID, session.getTransactionId() == null ? "NONE" : session.getTransactionId());
+
+        builder.addHeader("Content-Type", "text/plain");
+        builder.addHeader("x-kwest-user", user);
+        builder.addHeader("x-kwest-catalog", catalog);
+        builder.addHeader("x-kwest-schema", schema);
+        builder.addHeader("x-kwest-token", kwestToken);
 
         return builder.build();
     }

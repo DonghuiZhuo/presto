@@ -140,6 +140,9 @@ public class ClientOptions
     @Option(name = "--ignore-errors", title = "ignore errors", description = "Continue processing in batch mode when an error occurs (default is to exit immediately)")
     public boolean ignoreErrors;
 
+    @Option(name = "--kwest-config", title = "kwest configure file", description = "Configure file for Kwest")
+    public String kwestConfig;
+
     public enum OutputFormat
     {
         ALIGNED,
@@ -170,7 +173,10 @@ public class ClientOptions
                 emptyMap(),
                 toExtraCredentials(extraCredentials),
                 null,
-                clientRequestTimeout);
+                clientRequestTimeout,
+                kwestConfig,
+                keystorePath,
+                keystorePassword);
     }
 
     public static URI parseServer(String server)

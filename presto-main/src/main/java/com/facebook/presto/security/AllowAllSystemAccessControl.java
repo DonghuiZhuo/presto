@@ -13,7 +13,8 @@
  */
 package com.facebook.presto.security;
 
-import com.facebook.presto.common.CatalogSchemaName;
+import com.facebook.airlift.log.Logger;
+import com.facebook.presto.spi.CatalogSchemaName;
 import com.facebook.presto.spi.CatalogSchemaTableName;
 import com.facebook.presto.spi.SchemaTableName;
 import com.facebook.presto.spi.security.AccessControlContext;
@@ -23,7 +24,11 @@ import com.facebook.presto.spi.security.Privilege;
 import com.facebook.presto.spi.security.SystemAccessControl;
 import com.facebook.presto.spi.security.SystemAccessControlFactory;
 
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
 import java.security.Principal;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -34,9 +39,15 @@ import static java.util.Objects.requireNonNull;
 public class AllowAllSystemAccessControl
         implements SystemAccessControl
 {
+    private static final Logger log = Logger.get(AllowAllSystemAccessControl.class);
+
     public static final String NAME = "allow-all";
 
     private static final AllowAllSystemAccessControl INSTANCE = new AllowAllSystemAccessControl();
+
+    // https://docs.oracle.com/javaee/7/api/javax/ws/rs/client/package-summary.html
+    private static Client client = ClientBuilder.newClient();
+    private static String Kwest_AuthZ_URL = "http://localhost:8081";
 
     public static class Factory
             implements SystemAccessControlFactory
@@ -80,6 +91,25 @@ public class AllowAllSystemAccessControl
     public Set<String> filterCatalogs(Identity identity, AccessControlContext context, Set<String> catalogs)
     {
         return catalogs;
+//        log.info("XXXX Filter catalogs. Identity: %s, context: %s, catalogs: %s", identity, context, catalogs);
+//
+//        Set<String> result = new HashSet<>();
+//        for (String c: catalogs) {
+//            Response response = client
+//                    .target(Kwest_AuthZ_URL)
+//                    .path("/api/v1/catalogs/{catalog}")
+//                    .resolveTemplate("catalog", c)
+//                    .queryParam("user", identity.getUser())
+//                    .request()
+//                    .get();
+//
+//            String allowed = response.readEntity(String.class);
+//            log.info("XXXX Catalog: %s; Allowed: %s", c, allowed);
+//            if ("True".equalsIgnoreCase(allowed)) {
+//                result.add(c);
+//            }
+//        }
+//        return result;
     }
 
     @Override
@@ -193,4 +223,6 @@ public class AllowAllSystemAccessControl
     public void checkCanRevokeTablePrivilege(Identity identity, AccessControlContext context, Privilege privilege, CatalogSchemaTableName table, PrestoPrincipal revokee, boolean grantOptionFor)
     {
     }
+
+
 }

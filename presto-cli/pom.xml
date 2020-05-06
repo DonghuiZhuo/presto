@@ -30,6 +30,8 @@
         <dependency>
             <groupId>com.facebook.presto</groupId>
             <artifactId>presto-client</artifactId>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/presto-client/target/presto-client-0.235-SNAPSHOT.jar</systemPath>
         </dependency>
 
         <dependency>

@@ -131,7 +131,7 @@ public class AccessControlManager
 
         checkState(systemAccessControlLoading.compareAndSet(false, true), "System access control already initialized");
 
-        log.info("-- Loading system access control --");
+        log.info("-- XXXX Loading system access control --");
 
         SystemAccessControlFactory systemAccessControlFactory = systemAccessControlFactories.get(name);
         checkState(systemAccessControlFactory != null, "Access control %s is not registered", name);
@@ -139,7 +139,7 @@ public class AccessControlManager
         SystemAccessControl systemAccessControl = systemAccessControlFactory.create(ImmutableMap.copyOf(properties));
         this.systemAccessControl.set(systemAccessControl);
 
-        log.info("-- Loaded system access control %s --", name);
+        log.info("-- XXXX Loaded system access control %s --", name);
     }
 
     @Override

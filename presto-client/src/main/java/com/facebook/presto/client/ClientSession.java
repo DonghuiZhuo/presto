@@ -51,6 +51,9 @@ public class ClientSession
     private final Map<String, String> extraCredentials;
     private final String transactionId;
     private final Duration clientRequestTimeout;
+    private final String kwestConfig;
+    private final String keystorePath;
+    private final String keystorePass;
 
     public static Builder builder(ClientSession clientSession)
     {
@@ -81,7 +84,10 @@ public class ClientSession
             Map<String, SelectedRole> roles,
             Map<String, String> extraCredentials,
             String transactionId,
-            Duration clientRequestTimeout)
+            Duration clientRequestTimeout,
+            String kwestConfig,
+            String keystorePath,
+            String keystorePass)
     {
         this.server = requireNonNull(server, "server is null");
         this.user = user;
@@ -100,6 +106,9 @@ public class ClientSession
         this.roles = ImmutableMap.copyOf(requireNonNull(roles, "roles is null"));
         this.extraCredentials = ImmutableMap.copyOf(requireNonNull(extraCredentials, "extraCredentials is null"));
         this.clientRequestTimeout = clientRequestTimeout;
+        this.kwestConfig = kwestConfig;
+        this.keystorePath = keystorePath;
+        this.keystorePass = keystorePass;
 
         for (String clientTag : clientTags) {
             checkArgument(!clientTag.contains(","), "client tag cannot contain ','");
@@ -223,6 +232,21 @@ public class ClientSession
         return clientRequestTimeout;
     }
 
+    public String getKwestConfig()
+    {
+        return kwestConfig;
+    }
+
+    public String getKeystorePath()
+    {
+        return keystorePath;
+    }
+
+    public String getKeystorePass()
+    {
+        return keystorePass;
+    }
+
     @Override
     public String toString()
     {
@@ -238,6 +262,9 @@ public class ClientSession
                 .add("locale", locale)
                 .add("properties", properties)
                 .add("transactionId", transactionId)
+                .add("kwestConfig", kwestConfig)
+                .add("keystorePath", keystorePath)
+                .add("keystorePass", keystorePass)
                 .omitNullValues()
                 .toString();
     }
@@ -261,6 +288,9 @@ public class ClientSession
         private Map<String, String> credentials;
         private String transactionId;
         private Duration clientRequestTimeout;
+        private String kwestConfig;
+        private String keystorePath;
+        private String keystorePass;
 
         private Builder(ClientSession clientSession)
         {
@@ -282,6 +312,9 @@ public class ClientSession
             credentials = clientSession.getExtraCredentials();
             transactionId = clientSession.getTransactionId();
             clientRequestTimeout = clientSession.getClientRequestTimeout();
+            kwestConfig = clientSession.getKwestConfig();
+            keystorePath = clientSession.getKeystorePath();
+            keystorePass = clientSession.getKeystorePass();
         }
 
         public Builder withCatalog(String catalog)
@@ -332,6 +365,24 @@ public class ClientSession
             return this;
         }
 
+        public Builder withKwestConfig(String kwestConfig)
+        {
+            this.kwestConfig = kwestConfig;
+            return this;
+        }
+
+        public Builder withKeystorePath(String keystorePath)
+        {
+            this.keystorePath = keystorePath;
+            return this;
+        }
+
+        public Builder withKeystorePass(String keystorePass)
+        {
+            this.keystorePass = keystorePass;
+            return this;
+        }
+
         public ClientSession build()
         {
             return new ClientSession(
@@ -351,7 +402,10 @@ public class ClientSession
                     roles,
                     credentials,
                     transactionId,
-                    clientRequestTimeout);
+                    clientRequestTimeout,
+                    kwestConfig,
+                    keystorePath,
+                    keystorePass);
         }
     }
 }

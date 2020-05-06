@@ -42,10 +42,10 @@ import java.net.Proxy;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
 import java.security.cert.CertificateExpiredException;
 import java.security.cert.CertificateNotYetValidException;
 import java.security.cert.X509Certificate;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -186,16 +186,38 @@ public final class OkHttpUtil
             trustManagerFactory.init(trustStore);
 
             // get X509TrustManager
-            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
-            if ((trustManagers.length != 1) || !(trustManagers[0] instanceof X509TrustManager)) {
-                throw new RuntimeException("Unexpected default trust managers:" + Arrays.toString(trustManagers));
-            }
-            X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
+//            TrustManager[] trustManagers = trustManagerFactory.getTrustManagers();
+//            if ((trustManagers.length != 1) || !(trustManagers[0] instanceof X509TrustManager)) {
+//                throw new RuntimeException("Unexpected default trust managers:" + Arrays.toString(trustManagers));
+//            }
+//            X509TrustManager trustManager = (X509TrustManager) trustManagers[0];
+            X509TrustManager trustManager = new X509TrustManager()
+            {
+                @Override
+                public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                        throws CertificateException
+                {
+                }
+
+                @Override
+                public void checkServerTrusted(java.security.cert.X509Certificate[] chain, String authType)
+                        throws CertificateException
+                {
+                }
+
+                @Override
+                public java.security.cert.X509Certificate[] getAcceptedIssuers()
+                {
+                    return new java.security.cert.X509Certificate[] {};
+                }
+            };
+
+            final TrustManager[] trustAllCerts = new TrustManager[] {trustManager};
 
             // create SSLContext
             SSLContext sslContext = SSLContext.getInstance("TLS");
-            sslContext.init(keyManagers, new TrustManager[] {trustManager}, null);
-
+//            sslContext.init(keyManagers, new TrustManager[] {trustManager}, null);
+            sslContext.init(keyManagers, trustAllCerts, null);
             clientBuilder.sslSocketFactory(sslContext.getSocketFactory(), trustManager);
         }
         catch (GeneralSecurityException | IOException e) {
